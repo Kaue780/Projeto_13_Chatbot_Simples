@@ -1,17 +1,18 @@
-from google import genai
+
+from groq import Groq
 from dotenv import load_dotenv
 import os
 
 # Carrega as variáveis do arquivo .env
 load_dotenv()
-API_KEY = os.getenv("GEMINI_API_KEY")
+API_KEY = os.getenv("GROQ_API_KEY")
 
-# Cria o client da google
-client = genai.Client(api_key=API_KEY)
+# Cria o client da Groq
+client = Groq(api_key=API_KEY)
 
 # CHATBOT
 print("=" * 50)
-print("🤖 Chatbot Gemini")
+print("🤖 Chatbot Groq")
 print("Digite 'sair' para encerrar.")
 print("=" * 50)
 
@@ -23,32 +24,26 @@ while True:
 
     if pergunta.lower() == "sair":
         print("\n🤖: Até logo.")
-        
         break
 
-    # Guardar a mensagem do usuário
-    historico.append(
-        {
-            "role" : "user",
-            "parts" : [{"text":pergunta}]
-        }
+    # Guarda a mensagem do usuário
+    historico.append({
+        "role": "user",
+        "content": pergunta
+    })
+
+    # Resposta da Groq
+    resposta = client.chat.completions.create(
+        model="openai/gpt-oss-120b",
+        messages=historico
     )
 
-    # Resposta do GEMINI
-    resposta = client.models.generate_content(
-        model = "gemini-3.1-flash-lite",
-        contents = historico
-    )
+    texto = resposta.choices[0].message.content
 
-    texto = resposta.text
-    # Guarda a resposta do GEMINI
-    historico.append(
-        {
-            "role" : "model",
-            "parts" : [{"text":texto}]
-        }
-    )
+    # Guarda a resposta do assistente
+    historico.append({
+        "role": "assistant",
+        "content": texto
+    })
 
     print(f"\n🤖: {texto}")
-    
-
